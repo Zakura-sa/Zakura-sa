@@ -66,12 +66,12 @@ type Theme = {
   text: string;
   muted: string;
   faint: string;
-  primrose: string;   // 主色：雾津樱草绿
-  sprout: string;     // 嫩芽黄绿
-  dew: string;        // 晨露青蓝
-  blossom: string;    // 樱草花瓣粉/暖杏
-  sun: string;        // 暖阳琥珀金
-  paper: string;      // 拍立得/标本纸底色
+  primrose: string;
+  sprout: string;
+  dew: string;
+  blossom: string;
+  sun: string;
+  paper: string;
   ink: string;
   shadow: number;
   levels: [string, string, string, string, string];
@@ -237,22 +237,16 @@ class Card {
   }
 }
 
-// 四叶草 / 雾津樱草花瓣图形
 function clover(s = 1): string {
   const leaf = "M0,0 C-4,-5 -7,-11 0,-13 C7,-11 4,-5 0,0 Z";
   return `<g transform="scale(${n(s)})">${[0, 90, 180, 270].map((a) => `<path d="${leaf}" transform="rotate(${a})"/>`).join("")}</g>`;
 }
 
-// 五瓣雾津樱草小花
 function primroseFlower(color: string, centerColor: string, s = 1): string {
   const petal = "M0,0 C-3.5,-4 -4.5,-9 0,-10.5 C4.5,-9 3.5,-4 0,0 Z";
   return `<g transform="scale(${n(s)})"><g fill="${color}">${[0, 72, 144, 216, 288].map((a) => `<path d="${petal}" transform="rotate(${a})"/>`).join("")}</g><circle r="2.4" fill="${centerColor}"/></g>`;
 }
 
-// 嫩芽小叶
-const SPROUT_LEAF = "M0,2 V-5 M0,-2 C-4,-3 -6,-7 -2,-8 C1,-8 1,-4 0,-2 Z M0,-4 C4,-5 6,-9 2,-10 C-1,-10 -1,-6 0,-4 Z";
-
-// 模切白边贴纸包装器
 function stickerWrap(t: Theme, x: number, y: number, rot: number, scale: number, cut: string, body: string, edge = 3.2): string {
   const at = `rotate(${rot}) scale(${scale})`;
   const outline = `stroke-width="${n((edge * 2) / scale)}" stroke-linejoin="round" stroke-linecap="round"`;
@@ -277,17 +271,18 @@ function notebookFrame(c: Card, gridId: string) {
   );
 }
 
-function sectionHeader(c: Card, tag: string, sub: string, right: Seg[], y = 42) {
+function sectionHeader(c: Card, tag: string, sub: string, right: Seg[], y = 40) {
   const t = c.t;
   c.add(
     `<g transform="translate(38 ${y - 5}) rotate(-12)" fill="${t.primrose}">${clover(0.82)}</g>`,
-    c.text(56, y, tag, { role: "mono", size: 13, weight: 700, fill: t.primrose, ls: 2 }),
-    c.text(56 + tag.length * 9.8 + 12, y, sub, { size: 12.5, fill: t.muted }),
-    c.text(c.w - 36, y, right, { role: "mono", size: 12, fill: t.faint, anchor: "end" }),
+    c.text(56, y, tag, { role: "mono", size: 12.5, weight: 700, fill: t.primrose, ls: 1.5 }),
+    c.text(56 + tag.length * 8.8 + 14, y, sub, { size: 12, fill: t.muted }),
+    c.text(c.w - 36, y, right, { role: "mono", size: 11.5, fill: t.faint, anchor: "end" }),
   );
 }
 
 // ── 1 · 雾津樱草 · 温室观测手账横幅 (HEADER) ────────────────────────────
+// 严格边界：左区 x=38..462 (最大宽 424px)，右区画框 x=494..854
 
 function header(t: Theme): Card {
   const c = new Card(t, 900, 368);
@@ -296,7 +291,7 @@ function header(t: Theme): Card {
   c.defs.push(
     `<radialGradient id="sunGlow" cx="0.22" cy="0.18" r="0.65"><stop offset="0" stop-color="${t.sprout}" stop-opacity="${t.name === "light" ? 0.25 : 0.16}"/><stop offset="1" stop-color="${t.primrose}" stop-opacity="0"/></radialGradient>`,
     `<radialGradient id="dewGlow" cx="0.82" cy="0.8" r="0.55"><stop offset="0" stop-color="${t.dew}" stop-opacity="${t.name === "light" ? 0.18 : 0.14}"/><stop offset="1" stop-color="${t.dew}" stop-opacity="0"/></radialGradient>`,
-    `<clipPath id="hdrPhoto"><rect x="14" y="14" width="334" height="210" rx="8"/></clipPath>`,
+    `<clipPath id="hdrPhoto"><rect x="14" y="14" width="332" height="208" rx="8"/></clipPath>`,
   );
   c.css.push(
     ".floatLeaf{transform-box:fill-box;transform-origin:center;animation:fl 5.2s ease-in-out infinite alternate}",
@@ -312,89 +307,88 @@ function header(t: Theme): Card {
 
   sectionHeader(c, "MIST-HARBOR GREENHOUSE", "雾津樱草 · 视觉与多智能体科研手账", [[`${dotted(today)}`, t.primrose], [" · FIELD LOG", t.faint]], 40);
 
-  // 左侧主视觉区：手账标题 + 雾津樱草与星轨徽记 + 角色贴纸
+  // 顶部胶囊签 (宽 276px)
   c.add(
-    `<rect x="36" y="64" width="296" height="26" rx="13" fill="${t.surface}" stroke="${t.line}"/>`,
-    `<circle cx="52" cy="77" r="4.5" fill="${t.primrose}"/>`,
-    c.text(65, 81.5, "PRIMROSE & ORBITAL WORKSHOP", { role: "mono", size: 11, weight: 700, fill: t.primrose, ls: 1 }),
+    `<rect x="38" y="64" width="276" height="26" rx="13" fill="${t.surface}" stroke="${t.line}"/>`,
+    `<circle cx="54" cy="77" r="4.5" fill="${t.primrose}"/>`,
+    c.text(66, 81, "PRIMROSE & ORBITAL STUDIO", { role: "mono", size: 10.5, weight: 700, fill: t.primrose, ls: 0.8 }),
   );
 
   // 标题旁旋转的星轨四叶草徽章
   c.add(
-    `<g transform="translate(365 132)">`,
-    `<g class="orbitRing"><ellipse rx="28" ry="11" fill="none" stroke="${t.dew}" stroke-width="1.5" stroke-dasharray="4 3" transform="rotate(-24)"/><circle cx="24" cy="-10" r="3" fill="${t.sun}"/></g>`,
-    `<g class="floatLeaf">${primroseFlower(t.primrose, t.sun, 1.35)}</g>`,
+    `<g transform="translate(358 130)">`,
+    `<g class="orbitRing"><ellipse rx="26" ry="10" fill="none" stroke="${t.dew}" stroke-width="1.5" stroke-dasharray="4 3" transform="rotate(-24)"/><circle cx="22" cy="-9" r="3" fill="${t.sun}"/></g>`,
+    `<g class="floatLeaf">${primroseFlower(t.primrose, t.sun, 1.3)}</g>`,
     `</g>`,
   );
 
-  // 立体贴纸感大标题 Zakura-sa
-  const titleStyle = { role: "display" as const, size: 52 };
+  // 大标题 Zakura-sa (x=38..310)
+  const titleStyle = { role: "display" as const, size: 50 };
   c.add(
-    c.text(40, 146, "Zakura-sa", { ...titleStyle, fill: t.paper, attrs: `stroke="${t.paper}" stroke-width="10" stroke-linejoin="round"` }),
-    c.text(38, 144, [["Zakura", t.primrose], ["-sa", t.dew]], { ...titleStyle }),
+    c.text(40, 144, "Zakura-sa", { ...titleStyle, fill: t.paper, attrs: `stroke="${t.paper}" stroke-width="10" stroke-linejoin="round"` }),
+    c.text(38, 142, [["Zakura", t.primrose], ["-sa", t.dew]], { ...titleStyle }),
   );
 
-  // 清新雾津樱草格言
+  // 格言（22字 * 15px = 330px，终点 x=368，距右侧画框 x=494 留白 126px！）
   c.add(
-    c.text(40, 184, [["「", t.primrose], ["像照料长青的雾津樱草一样，在少样本的星图里培育不遗忘的模型"], ["」", t.primrose]], {
+    c.text(38, 182, [["「", t.primrose], ["像照料雾津的樱草，在星图里培育不遗忘的模型"], ["」", t.primrose]], {
       role: "zh",
-      size: 16.5,
+      size: 15.5,
       fill: t.text,
     }),
-    c.text(42, 210, "Few-Shot Class-Incremental Vision (TerraSAP)  &  Autonomous Multi-Agent Workshop", {
+    c.text(40, 206, "Continual Vision (TerraSAP) · Multi-Agent Research Workshop", {
       role: "mono",
-      size: 11.2,
+      size: 10.5,
       fill: t.muted,
     }),
   );
 
-  // 三个清新标本胶囊标签
+  // 三个标本胶囊（每个宽 134px，内部可用文字宽 110px）
   const pills: [string, string, string][] = [
-    ["🌱 遥感增量视觉", "TerraSAP Framework", t.primrose],
-    ["🛰️ 空间先验提示", "Spatial Prompt & EMA", t.dew],
-    ["🍀 多智能体工坊", "Evidence-Backed Agents", t.sprout],
+    ["🌱 遥感增量视觉", "TerraSAP · JSTARS", t.primrose],
+    ["🛰️ 空间先验提示", "SAPM · Dual EMA", t.dew],
+    ["🍀 多智能体工坊", "Agentic Studio", t.sprout],
   ];
   pills.forEach(([title, sub, col], i) => {
     const px = 38 + i * 142;
-    const py = 228;
+    const py = 226;
     c.add(
-      `<rect x="${px}" y="${py}" width="134" height="44" rx="10" fill="${t.panel}" stroke="${t.line}" filter="url(#softSh)"/>`,
-      `<rect x="${px}" y="${py}" width="5" height="44" rx="2.5" fill="${col}"/>`,
-      c.text(px + 14, py + 19, title, { size: 12, weight: 700, fill: t.text }),
-      c.text(px + 14, py + 35, sub, { role: "mono", size: 9.8, fill: t.faint }),
+      `<rect x="${px}" y="${py}" width="134" height="46" rx="10" fill="${t.panel}" stroke="${t.line}" filter="url(#softSh)"/>`,
+      `<rect x="${px}" y="${py}" width="5" height="46" rx="2.5" fill="${col}"/>`,
+      c.text(px + 13, py + 20, title, { size: 12, weight: 700, fill: t.text }),
+      c.text(px + 13, py + 36, sub, { role: "mono", size: 9.5, fill: t.faint }),
     );
   });
 
-  // 左下角贴上图片文件夹的薄荷猫与翠黑蛇贴纸 + 底部签名条
+  // 左下角签名条（宽 418px，右缘 x=456 < 494）
   c.add(
-    `<rect x="38" y="294" width="418" height="46" rx="12" fill="${t.surface}" stroke="${t.line}"/>`,
-    `<image href="data:image/png;base64,${stickerCat}" x="46" y="274" width="76" height="70" transform="rotate(-8 84 309)"/>`,
-    `<image href="data:image/png;base64,${stickerSnake}" x="116" y="274" width="76" height="70" transform="rotate(7 154 309)"/>`,
-    c.text(204, 314, [["github.com/", t.faint], ["Zakura-sa", t.primrose]], { role: "mono", size: 13, weight: 700 }),
-    c.text(204, 331, "Mist-Harbor Primrose Edition · Continual Learning Lab", { role: "mono", size: 10.2, fill: t.muted }),
+    `<rect x="38" y="292" width="418" height="48" rx="12" fill="${t.surface}" stroke="${t.line}"/>`,
+    `<image href="data:image/png;base64,${stickerCat}" x="46" y="274" width="74" height="68" transform="rotate(-8 83 308)"/>`,
+    `<image href="data:image/png;base64,${stickerSnake}" x="114" y="274" width="74" height="68" transform="rotate(7 151 308)"/>`,
+    c.text(198, 313, [["github.com/", t.faint], ["Zakura-sa", t.primrose]], { role: "mono", size: 12.5, weight: 700 }),
+    c.text(198, 330, "Mist-Harbor Primrose · Continual Lab", { role: "mono", size: 9.8, fill: t.muted }),
   );
 
-  // 右侧：宽幅草地手账插画画框 (cheki-main.jpg：原图自带方格纸与Q版三贴纸+草地双人！)
-  const fx = 492, fy = 66, fw = 362, fh = 274;
+  // 右侧：宽幅草地手账插画画框 (x=494..854)
+  const fx = 494, fy = 66, fw = 360, fh = 274;
   c.add(
-    `<g transform="translate(${fx} ${fy}) rotate(1.8 ${fw / 2} ${fh / 2})">`,
+    `<g transform="translate(${fx} ${fy}) rotate(1.6 ${fw / 2} ${fh / 2})">`,
     `<rect width="${fw}" height="${fh}" rx="12" fill="${t.paper}" stroke="${t.line}" filter="url(#softSh)"/>`,
-    `<image href="data:image/jpeg;base64,${chekiMain}" x="14" y="14" width="334" height="210" preserveAspectRatio="xMidYMid slice" clip-path="url(#hdrPhoto)"/>`,
-    `<rect x="14" y="14" width="334" height="210" rx="8" fill="none" stroke="${t.primrose}" stroke-opacity="0.25"/>`,
-    // 顶部雾津樱草绿和纸胶带
-    `<rect x="${fw / 2 - 58}" y="-10" width="116" height="24" rx="3" fill="${t.primrose}" opacity="0.55" transform="rotate(-3 ${fw / 2} 2)"/>`,
-    c.text(22, 252, "Mist-Harbor Field Note · 01", { role: "hand", size: 19, fill: "#2d7a56" }),
-    c.text(fw - 20, 252, "Primrose Green", { role: "mono", size: 11, fill: "#5f8c75", anchor: "end" }),
+    `<image href="data:image/jpeg;base64,${chekiMain}" x="14" y="14" width="332" height="208" preserveAspectRatio="xMidYMid slice" clip-path="url(#hdrPhoto)"/>`,
+    `<rect x="14" y="14" width="332" height="208" rx="8" fill="none" stroke="${t.primrose}" stroke-opacity="0.25"/>`,
+    `<rect x="${fw / 2 - 56}" y="-10" width="112" height="22" rx="3" fill="${t.primrose}" opacity="0.55" transform="rotate(-3 ${fw / 2} 2)"/>`,
+    c.text(20, 250, "Mist-Harbor Note · 01", { role: "hand", size: 17.5, fill: "#2d7a56" }),
+    c.text(fw - 18, 250, "Primrose Green", { role: "mono", size: 10.5, fill: "#5f8c75", anchor: "end" }),
     `</g>`,
-    // 画框左上角点缀一朵盛开的樱草花贴纸
-    stickerWrap(t, 492, 72, -15, 1.05, `<circle r="13"/>`, primroseFlower(t.primrose, t.sun, 1.2)),
-    stickerWrap(t, 852, 330, 14, 0.95, `<circle r="12"/>`, `<g fill="${t.sprout}">${clover(0.95)}</g>`),
+    stickerWrap(t, 494, 72, -15, 1.0, `<circle r="13"/>`, primroseFlower(t.primrose, t.sun, 1.15)),
+    stickerWrap(t, 850, 330, 14, 0.9, `<circle r="12"/>`, `<g fill="${t.sprout}">${clover(0.9)}</g>`),
   );
 
   return c;
 }
 
 // ── 2 · 樱草标本签直达按钮 (LINK-TERRASAP) ──────────────────────────────
+// 严格边界：文字起点 x=102，右侧圆钮左缘 x=306，可用宽 194px
 
 function linkTerraSAP(t: Theme): Card {
   const c = new Card(t, 380, 96);
@@ -406,9 +400,9 @@ function linkTerraSAP(t: Theme): Card {
     `<rect x="${ax}" y="20" width="296" height="56" rx="28" fill="${t.primrose}"/>`,
     `<circle cx="${ax}" cy="${cy}" r="35" fill="${t.primrose}"/>`,
     `<image href="data:image/jpeg;base64,${avatarImg}" x="${ax - 30}" y="${cy - 30}" width="60" height="60" clip-path="url(#avClip)"/>`,
-    `<g transform="translate(${ax + 46} ${cy - 10})" fill="#ffffff">${clover(0.55)}</g>`,
-    c.text(ax + 58, cy - 6, "PUBLIC REPOSITORY · FSCIL", { role: "mono", size: 10, weight: 700, fill: "#ffffff", opacity: 0.9, ls: 0.8 }),
-    c.text(ax + 44, cy + 17, "TerraSAP  ·  遥感增量学习", { role: "display", size: 18, fill: "#ffffff" }),
+    `<g transform="translate(${ax + 46} ${cy - 11})" fill="#ffffff">${clover(0.5)}</g>`,
+    c.text(ax + 57, cy - 7, "IEEE JSTARS · PUBLIC REPO", { role: "mono", size: 9.5, weight: 700, fill: "#ffffff", opacity: 0.92, ls: 0.5 }),
+    c.text(ax + 44, cy + 16, "TerraSAP · 遥感增量", { role: "display", size: 16.5, fill: "#ffffff" }),
     `<circle cx="${ax + 266}" cy="${cy}" r="16" fill="#ffffff"/>`,
     `<path d="M${ax + 261},${cy - 6} L${ax + 272},${cy} L${ax + 261},${cy + 6} Z" fill="${t.primrose}" stroke="${t.primrose}" stroke-width="2" stroke-linejoin="round"/>`,
   ].join("");
@@ -430,90 +424,93 @@ function works(t: Theme): Card {
     40,
   );
 
-  c.defs.push(`<clipPath id="catLaptopClip"><rect x="748" y="84" width="96" height="108" rx="8"/></clipPath>`);
+  c.defs.push(`<clipPath id="catLaptopClip"><rect x="752" y="82" width="92" height="102" rx="7"/></clipPath>`);
   c.css.push(
     ".pulseLeaf{animation:plf 2.6s ease-in-out infinite}",
     "@keyframes plf{0%,100%{opacity:.45}50%{opacity:1}}",
   );
 
-  // ── 左页：01 // TerraSAP（遥感少样本类增量学习公开框架）──
+  // ── 左页：01 // TerraSAP（内部条卡可用文字宽 290px，严格控制在 21 字以内）──
   const lx = 32, ly = 66, lw = 410, lh = 310;
   c.add(
-    // 顶部文件夹索引签
-    `<path d="M${lx + 18},${ly} L${lx + 26},${ly - 14} H${lx + 186} L${lx + 194},${ly} Z" fill="${t.primrose}" opacity="0.88"/>`,
-    c.text(lx + 106, ly - 3, "NOTE 01 · PUBLIC REPO", { role: "mono", size: 9.5, weight: 700, fill: "#ffffff", anchor: "middle", ls: 1 }),
+    `<path d="M${lx + 18},${ly} L${lx + 26},${ly - 15} H${lx + 210} L${lx + 218},${ly} Z" fill="${t.primrose}" opacity="0.9"/>`,
+    c.text(lx + 118, ly - 4, "NOTE 01 · PUBLIC REPO", { role: "mono", size: 9.2, weight: 700, fill: "#ffffff", anchor: "middle", ls: 0.8 }),
     `<rect x="${lx}" y="${ly}" width="${lw}" height="${lh}" rx="16" fill="${t.panel}" stroke="${t.line}" filter="url(#softSh)"/>`,
     `<rect x="${lx}" y="${ly}" width="${lw}" height="6" rx="3" fill="${t.primrose}"/>`,
   );
 
-  // 右上角定制遥感卫星与空间先验网格插图
+  // 右上角遥感空间先验小插图 (x=350..418, y=82..134)
   c.add(
-    `<g transform="translate(${lx + lw - 68} ${ly + 54})">`,
-    `<rect x="-36" y="-28" width="72" height="56" rx="10" fill="${t.surface}" stroke="${t.line}"/>`,
-    `<path d="M-24,-10 L0,-20 L24,-10 L0,0 Z" fill="${t.primrose}" opacity="0.28" stroke="${t.primrose}" stroke-width="1.2"/>`,
-    `<path d="M-24,6 L0,-4 L24,6 L0,16 Z" fill="${t.dew}" opacity="0.25" stroke="${t.dew}" stroke-width="1.2"/>`,
-    `<circle cx="0" cy="-10" r="3" fill="${t.sun}"/>`,
+    `<g transform="translate(${lx + lw - 58} ${ly + 44})">`,
+    `<rect x="-34" y="-24" width="68" height="48" rx="9" fill="${t.surface}" stroke="${t.line}"/>`,
+    `<path d="M-22,-8 L0,-17 L22,-8 L0,1 Z" fill="${t.primrose}" opacity="0.28" stroke="${t.primrose}" stroke-width="1.2"/>`,
+    `<path d="M-22,6 L0,-3 L22,6 L0,15 Z" fill="${t.dew}" opacity="0.25" stroke="${t.dew}" stroke-width="1.2"/>`,
+    `<circle cx="0" cy="-8" r="2.8" fill="${t.sun}"/>`,
     `</g>`,
   );
 
   c.add(
     `<circle class="pulseLeaf" cx="${lx + 24}" cy="${ly + 30}" r="4.5" fill="${t.primrose}"/>`,
-    c.text(lx + 36, ly + 34, "REMOTE SENSING FSCIL · PYTORCH", { role: "mono", size: 11, weight: 700, fill: t.primrose, ls: 0.8 }),
-    c.text(lx + 22, ly + 70, "TerraSAP", { role: "display", size: 32, fill: t.text }),
-    c.text(lx + 22, ly + 94, "Spatial Prior-Aware Prompt Learning Framework", { role: "mono", size: 11.5, fill: t.dew }),
-    c.text(lx + 22, ly + 120, "面向遥感图像少样本类增量学习的轻量级空间先验框架：", { size: 12.5, fill: t.muted }),
+    c.text(lx + 36, ly + 34, "REMOTE SENSING FSCIL · JSTARS", { role: "mono", size: 10.5, weight: 700, fill: t.primrose, ls: 0.5 }),
+    c.text(lx + 22, ly + 68, "TerraSAP", { role: "display", size: 30, fill: t.text }),
+    c.text(lx + 22, ly + 92, "Spatial Prior-Aware Prompt Learning Framework", { role: "mono", size: 11, fill: t.dew }),
+    c.text(lx + 22, ly + 118, "面向遥感图像少样本类增量学习的轻量空间先验框架：", { size: 12, fill: t.muted }),
   );
 
+  // 3 张模块条卡：条卡宽 370px (x=52..422)，文字从 x=118 开始，最长不超 x=408 (290px)
   const sapItems: [string, string, string, string][] = [
-    ["SAPM", "空间先验提示", "确定性编码绝对/相对空间位置，引导冻结 ViT", t.primrose],
-    ["DPEMA", "双路动量记忆", "稳定记忆与可塑记忆并行，平衡旧类保持与新类学习", t.dew],
-    ["NCAC", "新类感知分类", "融合空间上下文初始化新类权重，校准增量边界", t.sprout],
+    ["SAPM", "空间先验提示", "编码绝对与相对位置引导冻结 ViT", t.primrose],
+    ["DPEMA", "双路动量记忆", "稳定与可塑记忆并行抑制灾难遗忘", t.dew],
+    ["NCAC", "新类感知分类", "融合空间上下文动态校准增量边界", t.sprout],
   ];
   sapItems.forEach(([code, title, desc, col], idx) => {
-    const my = ly + 136 + idx * 40;
+    const my = ly + 134 + idx * 40;
     c.add(
       `<rect x="${lx + 20}" y="${my}" width="${lw - 40}" height="34" rx="8" fill="${t.surface}" stroke="${t.line}"/>`,
-      `<rect x="${lx + 26}" y="${my + 6}" width="54" height="22" rx="5" fill="${col}" opacity="0.22" stroke="${col}"/>`,
-      c.text(lx + 53, my + 21, code, { role: "mono", size: 11, weight: 700, fill: t.text, anchor: "middle" }),
-      c.text(lx + 90, my + 21.5, [[`${title} · `, t.text, `font-weight="700"`], [desc, t.muted]], { size: 11.5 }),
+      `<rect x="${lx + 26}" y="${my + 6}" width="52" height="22" rx="5" fill="${col}" opacity="0.22" stroke="${col}"/>`,
+      c.text(lx + 52, my + 20.5, code, { role: "mono", size: 10.5, weight: 700, fill: t.text, anchor: "middle" }),
+      c.text(lx + 86, my + 21, [[`${title} · `, t.text, `font-weight="700"`], [desc, t.muted]], { size: 11.2 }),
     );
   });
 
   c.add(
-    `<rect x="${lx + 20}" y="${ly + 264}" width="${lw - 40}" height="30" rx="8" fill="${t.surface}" stroke="${t.line}"/>`,
-    c.text(lx + lw / 2, ly + 283, [
+    `<rect x="${lx + 20}" y="${ly + 262}" width="${lw - 40}" height="30" rx="8" fill="${t.surface}" stroke="${t.line}"/>`,
+    c.text(lx + lw / 2, ly + 281, [
       ["NWPU ", t.faint], ["84.03%", t.primrose],
-      ["  ·  UCMerced ", t.faint], ["84.41%", t.dew],
-      ["  ·  可训参数 ", t.faint], ["-93.2%", t.sun],
-    ], { role: "mono", size: 11.5, weight: 700, anchor: "middle" }),
+      [" · UCM ", t.faint], ["84.41%", t.dew],
+      [" · MSTAR ", t.faint], ["74.90%", t.sprout],
+      [" · Params ", t.faint], ["-93.2%", t.sun],
+    ], { role: "mono", size: 10, weight: 700, anchor: "middle" }),
   );
 
-  // ── 右页：02 // 当前多智能体科研工坊（脱敏手账）──
+  // ── 右页：02 // 当前多智能体科研工坊（右上角画框 x=746..848, y=76..190）──
   const rx = 458, ry = 66, rw = 410, rh = 310;
   c.add(
-    `<path d="M${rx + 18},${ry} L${rx + 26},${ry - 14} H${rx + 212} L${rx + 220},${ry} Z" fill="${t.dew}" opacity="0.88"/>`,
-    c.text(rx + 119, ry - 3, "NOTE 02 · SANITIZED WORKSHOP", { role: "mono", size: 9.5, weight: 700, fill: "#ffffff", anchor: "middle", ls: 1 }),
+    `<path d="M${rx + 18},${ry} L${rx + 26},${ry - 15} H${rx + 236} L${rx + 244},${ry} Z" fill="${t.dew}" opacity="0.9"/>`,
+    c.text(rx + 131, ry - 4, "NOTE 02 · SANITIZED WORKSHOP", { role: "mono", size: 9.2, weight: 700, fill: "#ffffff", anchor: "middle", ls: 0.6 }),
     `<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="16" fill="${t.panel}" stroke="${t.line}" filter="url(#softSh)"/>`,
     `<rect x="${rx}" y="${ry}" width="${rw}" height="6" rx="3" fill="${t.dew}"/>`,
   );
 
+  // 左上方文字全部严格控制在 x=480..732 (最大宽 252px)，绝不触碰右侧画框 x=746！
   c.add(
     `<circle class="pulseLeaf" cx="${rx + 24}" cy="${ry + 30}" r="4.5" fill="${t.dew}"/>`,
-    c.text(rx + 36, ry + 34, "CURRENT WORKSHOP · MULTI-AGENT", { role: "mono", size: 11, weight: 700, fill: t.dew, ls: 0.8 }),
-    c.text(rx + 22, ry + 70, "Agentic Research Hub", { role: "display", size: 28, fill: t.text }),
-    c.text(rx + 22, ry + 94, "Evidence-Backed Autonomous Research Workshop", { role: "mono", size: 11.2, fill: t.primrose }),
-    c.text(rx + 22, ry + 120, "多角色闭环协同、证据链记忆与算力调度工坊：", { size: 12.5, fill: t.muted }),
+    c.text(rx + 36, ry + 34, "MULTI-AGENT WORKSHOP", { role: "mono", size: 10.5, weight: 700, fill: t.dew, ls: 0.6 }),
+    c.text(rx + 22, ry + 68, "Agentic Research", { role: "display", size: 26, fill: t.text }),
+    c.text(rx + 22, ry + 92, "Autonomous Scientific Studio", { role: "mono", size: 10.8, fill: t.primrose }),
+    c.text(rx + 22, ry + 118, "多角色闭环协同与证据链记忆工坊：", { size: 12, fill: t.muted }),
   );
 
-  // 右上角贴上四叶草薄荷猫敲代码手账画框 (coding-cat.jpg)
+  // 右上角四叶草薄荷猫敲代码手账画框 (x=746..848, y=76..190)
   c.add(
-    `<g transform="rotate(3.5 796 138)">`,
-    `<rect x="742" y="78" width="108" height="122" rx="10" fill="${t.paper}" stroke="${t.line}" filter="url(#softSh)"/>`,
-    `<image href="data:image/jpeg;base64,${codingCat}" x="748" y="84" width="96" height="108" preserveAspectRatio="xMidYMid slice" clip-path="url(#catLaptopClip)"/>`,
-    `<rect x="772" y="72" width="48" height="12" rx="2" fill="${t.primrose}" opacity="0.58"/>`,
+    `<g transform="rotate(3 798 133)">`,
+    `<rect x="746" y="76" width="104" height="114" rx="9" fill="${t.paper}" stroke="${t.line}" filter="url(#softSh)"/>`,
+    `<image href="data:image/jpeg;base64,${codingCat}" x="752" y="82" width="92" height="102" preserveAspectRatio="xMidYMid slice" clip-path="url(#catLaptopClip)"/>`,
+    `<rect x="776" y="70" width="44" height="11" rx="2" fill="${t.primrose}" opacity="0.58"/>`,
     `</g>`,
   );
 
+  // 4 行角色节点从 y = ry + 138 = 204 开始（完全位于画框底边 y=190 下方，整行 368px 可用！）
   const roles: [string, string, string][] = [
     ["HUB 工坊总管", "全局架构维护、环境权限与人机即时交互", t.primrose],
     ["OWNER 科研中枢", "实验协议设计、评价口径统筹与科学裁决", t.dew],
@@ -521,21 +518,21 @@ function works(t: Theme): Card {
     ["EXECUTOR 算力调度", "宿主机 GPU/CPU 窗口分配与证据账本归档", t.sun],
   ];
   roles.forEach(([role, desc, col], idx) => {
-    const my = ry + 136 + idx * 30;
+    const my = ry + 138 + idx * 29;
     c.add(
-      `<g transform="translate(${rx + 28} ${my + 12})" fill="${col}">${clover(0.55)}</g>`,
-      c.text(rx + 42, my + 16, role, { role: "mono", size: 11.5, weight: 700, fill: t.text }),
-      c.text(rx + 148, my + 16, desc, { size: 11.5, fill: t.muted }),
+      `<g transform="translate(${rx + 28} ${my + 11})" fill="${col}">${clover(0.52)}</g>`,
+      c.text(rx + 42, my + 15, role, { role: "mono", size: 11, weight: 700, fill: t.text }),
+      c.text(rx + 148, my + 15, desc, { size: 11.2, fill: t.muted }),
     );
   });
 
   c.add(
-    `<rect x="${rx + 20}" y="${ry + 264}" width="${rw - 40}" height="30" rx="8" fill="${t.surface}" stroke="${t.line}"/>`,
-    c.text(rx + rw / 2, ry + 283, [
-      ["Evidence Memory ", t.primrose],
-      [" ·  Silent Relay Bus ", t.dew],
-      [" ·  Isolated Worktrees", t.sprout],
-    ], { role: "mono", size: 11.2, weight: 700, anchor: "middle" }),
+    `<rect x="${rx + 20}" y="${ry + 262}" width="${rw - 40}" height="30" rx="8" fill="${t.surface}" stroke="${t.line}"/>`,
+    c.text(rx + rw / 2, ry + 281, [
+      ["Evidence Memory", t.primrose],
+      [" · Silent Relay", t.dew],
+      [" · Isolated Worktrees", t.sprout],
+    ], { role: "mono", size: 10.2, weight: 700, anchor: "middle" }),
   );
 
   return c;
@@ -548,73 +545,69 @@ function toolkit(t: Theme): Card {
   notebookFrame(c, "tkGrid");
   sectionHeader(c, "GREENHOUSE BENCH", "温室标本台 · 语言生态与常用工具", [["PYTHON · TYPESCRIPT · PYTORCH", t.primrose]], 40);
 
-  // ── 左侧：语言生态环 (Language Terrarium) + Q版双人贴纸 ──
-  const lx = 32, ly = 64, lw = 336, lh = 198;
+  // ── 左侧：语言生态环 (宽 314px, x=32..346) ──
+  const lx = 32, ly = 64, lw = 314, lh = 198;
   c.add(
     `<rect x="${lx}" y="${ly}" width="${lw}" height="${lh}" rx="16" fill="${t.panel}" stroke="${t.line}" filter="url(#softSh)"/>`,
-    c.text(lx + 20, ly + 28, "LANGUAGE TERRARIUM · 语言生态", { role: "mono", size: 11, weight: 700, fill: t.primrose }),
+    c.text(lx + 18, ly + 28, "LANGUAGE TERRARIUM · 语言生态", { role: "mono", size: 10.8, weight: 700, fill: t.primrose }),
   );
 
-  // 绘制圆环图 (cx=110, cy=144, r=46)
-  const cx = lx + 78, cy = ly + 114, r = 44, circ = 2 * Math.PI * r;
+  const cx = lx + 68, cy = ly + 116, r = 40, circ = 2 * Math.PI * r;
   const ringColors = [t.primrose, t.dew, t.sprout, t.sun];
   let offset = 0;
-  c.add(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${t.surface}" stroke-width="14"/>`);
+  c.add(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${t.surface}" stroke-width="13"/>`);
   langs.forEach((l, i) => {
     const dash = (l.pct / 100) * circ;
     c.add(
-      `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${ringColors[i]}" stroke-width="14" stroke-dasharray="${n(dash)} ${n(circ)}" stroke-dashoffset="${n(-offset)}" transform="rotate(-90 ${cx} ${cy})"/>`,
+      `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${ringColors[i]}" stroke-width="13" stroke-dasharray="${n(dash)} ${n(circ)}" stroke-dashoffset="${n(-offset)}" transform="rotate(-90 ${cx} ${cy})"/>`,
     );
     offset += dash;
   });
-  c.add(
-    `<g transform="translate(${cx} ${cy})" fill="${t.primrose}">${clover(0.95)}</g>`,
-  );
+  c.add(`<g transform="translate(${cx} ${cy})" fill="${t.primrose}">${clover(0.88)}</g>`);
 
-  // 语言图例 + Q版双人贴纸 (sticker-duo.png)
+  // 语言图例：名称在 lx+128，百分比在 lx+232 (间距充裕绝不重叠)
   langs.forEach((l, i) => {
-    const ry = ly + 74 + i * 26;
+    const ry = ly + 74 + i * 25;
     c.add(
-      `<circle cx="${lx + 150}" cy="${ry - 4}" r="4.5" fill="${ringColors[i]}"/>`,
-      c.text(lx + 162, ry, l.name, { role: "mono", size: 12, weight: 700, fill: t.text }),
-      c.text(lx + 246, ry, `${l.pct.toFixed(0)}%`, { role: "mono", size: 11.5, fill: t.muted, anchor: "end" }),
+      `<circle cx="${lx + 126}" cy="${ry - 4}" r="4" fill="${ringColors[i]}"/>`,
+      c.text(lx + 136, ry, l.name, { role: "mono", size: 11, weight: 700, fill: t.text }),
+      c.text(lx + 234, ry, `${l.pct.toFixed(0)}%`, { role: "mono", size: 10.8, fill: t.muted, anchor: "end" }),
     );
   });
   c.add(
-    `<image href="data:image/png;base64,${stickerDuo}" x="${lx + 244}" y="${ly + 88}" width="86" height="80" transform="rotate(6 ${lx + 287} ${ly + 128})"/>`,
+    `<image href="data:image/png;base64,${stickerDuo}" x="${lx + 234}" y="${ly + 96}" width="76" height="72" transform="rotate(6 ${lx + 272} ${ly + 132})"/>`,
   );
 
-  // ── 右侧：四枚「雾津温室标本签」(Specimen Cards) ──
+  // ── 右侧：四枚「雾津温室标本签」(每张宽 120px，内部文字严格 <= 96px) ──
   const cards: [string, string, string, string, string][] = [
-    ["01", "PyTorch & ViT", "视觉主干与提示微调", "PEFT · Spatial Prompt", t.primrose],
-    ["02", "Continual Vision", "少样本类增量学习", "FSCIL · Dual EMA · NCAC", t.dew],
-    ["03", "Agent Runtime", "多智能体编排与通信", "TypeScript · Subagents", t.sprout],
-    ["04", "Evidence Memory", "可复现实验与证据链", "Task Ledger · Git Audit", t.sun],
+    ["01", "PyTorch & ViT", "视觉主干与提示", "PEFT · Prompt", t.primrose],
+    ["02", "Continual AI", "少样本增量学习", "FSCIL · Dual EMA", t.dew],
+    ["03", "Agent System", "多智能体协同", "TS · Subagents", t.sprout],
+    ["04", "Memory Audit", "可复现证据账本", "Ledger · Relay", t.sun],
   ];
   cards.forEach(([num, title, zhSub, tech, col], i) => {
-    const sx = 386 + i * 122;
+    const sx = 362 + i * 130;
     const sy = 64;
-    const sw = 112;
+    const sw = 120;
     const sh = 198;
     const midX = sx + sw / 2;
     c.add(
-      // 标本吊牌外框与顶部穿绳圆孔
       `<rect x="${sx}" y="${sy}" width="${sw}" height="${sh}" rx="14" fill="${t.panel}" stroke="${t.line}" filter="url(#softSh)"/>`,
       `<rect x="${sx}" y="${sy}" width="${sw}" height="34" rx="14" fill="${col}" opacity="0.22"/>`,
       `<circle cx="${midX}" cy="${sy + 16}" r="5" fill="${t.card}" stroke="${col}" stroke-width="1.5"/>`,
-      c.text(midX, sy + 54, `SPECIMEN ${num}`, { role: "mono", size: 9.5, weight: 700, fill: col, anchor: "middle", ls: 1 }),
-      `<g transform="translate(${midX} ${sy + 86})" fill="${col}">${i % 2 === 0 ? clover(1.0) : primroseFlower(col, t.sun, 1.05)}</g>`,
-      c.text(midX, sy + 124, title, { role: "display", size: 14, fill: t.text, anchor: "middle" }),
+      c.text(midX, sy + 54, `SPECIMEN ${num}`, { role: "mono", size: 9.2, weight: 700, fill: col, anchor: "middle", ls: 0.8 }),
+      `<g transform="translate(${midX} ${sy + 86})" fill="${col}">${i % 2 === 0 ? clover(0.95) : primroseFlower(col, t.sun, 1.0)}</g>`,
+      c.text(midX, sy + 124, title, { role: "display", size: 13, fill: t.text, anchor: "middle" }),
       c.text(midX, sy + 144, zhSub, { size: 11, fill: t.muted, anchor: "middle" }),
       `<line x1="${sx + 14}" y1="${sy + 160}" x2="${sx + sw - 14}" y2="${sy + 160}" stroke="${t.line}" stroke-dasharray="2 3"/>`,
-      c.text(midX, sy + 178, tech, { role: "mono", size: 9.2, fill: t.faint, anchor: "middle" }),
+      c.text(midX, sy + 178, tech, { role: "mono", size: 9, fill: t.faint, anchor: "middle" }),
     );
   });
 
   return c;
 }
 
-// ── 5 · 雾津樱草萌芽日历 + 书签收尾 (GARDEN：近一年 987 次耕耘) ─────────
+// ── 5 · 雾津樱草萌芽日历 + 书签收尾 (GARDEN) ────────────────────────────
 
 const LEVEL: Record<string, number> = { NONE: 0, FIRST_QUARTILE: 1, SECOND_QUARTILE: 2, THIRD_QUARTILE: 3, FOURTH_QUARTILE: 4 };
 
@@ -658,19 +651,14 @@ function garden(t: Theme): Card {
       const cy = y0 + d.weekday * py + py / 2;
       const lv = LEVEL[d.contributionLevel] ?? 0;
       if (lv === 0) {
-        // 休眠种子点
         cells.push(`<circle cx="${n(cx)}" cy="${n(cy)}" r="1.8" fill="${t.levels[0]}" opacity="0.65"/>`);
       } else if (lv === 1) {
-        // 初萌小叶点
         cells.push(`<rect x="${n(cx - 3.2)}" y="${n(cy - 3.2)}" width="6.4" height="6.4" rx="2.2" fill="${t.levels[1]}"/>`);
       } else if (lv === 2) {
-        // 嫩芽绿叶
         cells.push(`<g transform="translate(${n(cx)} ${n(cy)})"><rect x="-4" y="-4" width="8" height="8" rx="3" fill="${t.levels[2]}"/><circle r="1.6" fill="#ffffff" opacity="0.55"/></g>`);
       } else if (lv === 3) {
-        // 摇摆的四叶草
         cells.push(`<g transform="translate(${n(cx)} ${n(cy)})"><g class="breeze" style="animation-delay:${n(-wi * 0.08)}s" fill="${t.levels[3]}">${clover(0.46)}</g></g>`);
       } else {
-        // 盛放的雾津樱草花
         cells.push(`<g transform="translate(${n(cx)} ${n(cy)})"><g class="breeze" style="animation-delay:${n(-wi * 0.08)}s">${primroseFlower(t.levels[3], t.levels[4], 0.56)}</g></g>`);
       }
     }
@@ -690,11 +678,10 @@ function garden(t: Theme): Card {
         ["最长连续耕耘 ", t.faint], [`${bestStreak}`, t.primrose], [" 天", t.muted], ["  ·  ", t.faint],
         ["最繁茂单日 ", t.faint], [`${hm}月${hd}日`, t.dew], [`（${hottest.contributionCount} 次提交）`, t.muted],
       ],
-      { role: "mono", size: 11.5 },
+      { role: "mono", size: 11.2 },
     ),
   );
 
-  // 图例：种子 → 嫩芽 → 四叶草 → 盛放樱草
   c.add(
     c.text(596, 228, "种子", { size: 11, fill: t.faint }),
     `<circle cx="630" cy="224" r="2.2" fill="${t.levels[0]}"/>`,
@@ -705,11 +692,10 @@ function garden(t: Theme): Card {
     c.text(704, 228, "盛放雾津樱草", { size: 11, fill: t.primrose }),
   );
 
-  // 底部雾津书签收尾条 (Bookmark Footer)
   c.add(
     `<rect x="32" y="246" width="836" height="44" rx="12" fill="${t.surface}" stroke="${t.line}"/>`,
     `<g transform="translate(56 268)" fill="${t.primrose}">${clover(0.78)}</g>`,
-    c.text(76, 273, "「春风吹过雾津的草坡，每一行代码与实验都在安静发芽」", { role: "zh", size: 16, fill: t.text }),
+    c.text(76, 273, "「春风吹过雾津的草坡，每一行代码与实验都在安静发芽」", { role: "zh", size: 15.5, fill: t.text }),
     c.text(848, 272, `Updated · ${dotted(today)}`, { role: "mono", size: 11, fill: t.faint, anchor: "end" }),
   );
 
@@ -719,7 +705,7 @@ function garden(t: Theme): Card {
 // ── 输出全部卡片 ────────────────────────────────────────────────────────
 
 const CARDS: [string, (t: Theme) => Card, string][] = [
-  ["header", header, "Zakura-sa · 雾津樱草温室手账「像照料长青的雾津樱草一样，在少样本的星图里培育不遗忘的模型」"],
+  ["header", header, "Zakura-sa · 雾津樱草温室手账"],
   ["link-terrasap", linkTerraSAP, "TerraSAP：遥感少样本类增量学习公开仓库"],
   ["works", works, "观测手账：TerraSAP 与当前多智能体科研工坊（脱敏展示）"],
   ["toolkit", toolkit, "温室标本台：语言生态环与四枚核心技术标本签"],
