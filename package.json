@@ -1,0 +1,13 @@
+{
+  "name": "zakura-sa-profile",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "fetch": "node fetch.ts",
+    "gen": "node gen.ts",
+    "update": "node fetch.ts && node gen.ts"
+  }
+}
