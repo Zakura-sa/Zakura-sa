@@ -1,3 +1,4 @@
+if (process.env.GH_TOKEN) process.env.GH_TOKEN = process.env.GH_TOKEN.trim();
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
