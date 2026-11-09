@@ -1,0 +1,48 @@
+name: Update Profile Cards
+
+on:
+  schedule:
+    # 每天北京时间 00:15 与 12:15 自动刷新日历与卡片日期
+    - cron: "15 16 * * *"
+    - cron: "15 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Cache subsetted Google Fonts
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: google-fonts-cache-v1-${{ hashFiles('gen.ts') }}
+          restore-keys: |
+            google-fonts-cache-v1-
+
+      - name: Fetch anonymized stats and regenerate SVG cards
+        env:
+          GH_TOKEN: ${{ secrets.PROFILE_TOKEN || github.token }}
+        run: npm run update
+
+      - name: Commit and push updated cards
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/stats.json cards/*.svg
+          if git diff --staged --quiet; then
+            echo "No card changes to commit."
+          else
+            git commit -m "chore: auto-refresh profile cards and contribution calendar"
+            git push
+          fi

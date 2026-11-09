@@ -1,15 +1,35 @@
 import { execFileSync } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const DATA = join(dirname(fileURLToPath(import.meta.url)), "data");
+const STATS_PATH = join(DATA, "stats.json");
 const LOGIN = "Zakura-sa";
 
-const query = `query {
+// 读取已有脱敏数据作为兜底基线（防止 Token 权限回退时丢失历史统计）
+const prevDayCounts = new Map<string, number>();
+const prevLangTotals = new Map<string, number>();
+if (existsSync(STATS_PATH)) {
+  try {
+    const prev = JSON.parse(readFileSync(STATS_PATH, "utf8")).data?.user;
+    for (const w of prev?.contributionsCollection?.contributionCalendar?.weeks ?? []) {
+      for (const d of w.contributionDays ?? []) {
+        if (d.contributionCount > 0) prevDayCounts.set(d.date, d.contributionCount);
+      }
+    }
+    for (const r of prev?.repositories?.nodes ?? []) {
+      for (const e of r.languages?.edges ?? []) {
+        prevLangTotals.set(e.node.name, Math.max(prevLangTotals.get(e.node.name) ?? 0, e.size));
+      }
+    }
+  } catch {}
+}
+
+const viewerQuery = `query {
   viewer {
     login
-    repositories(first: 50, ownerAffiliations: OWNER) {
+    repositories(first: 60, ownerAffiliations: OWNER) {
       nodes {
         name
         isFork
@@ -44,29 +64,79 @@ const query = `query {
   }
 }`;
 
-const raw = JSON.parse(execFileSync("gh", ["api", "graphql", "-f", `query=${query}`], { encoding: "utf8" }));
-const viewer = raw.data.viewer;
+const publicUserQuery = `query($login: String!) {
+  user(login: $login) {
+    login
+    repositories(first: 60, ownerAffiliations: OWNER, privacy: PUBLIC) {
+      nodes {
+        name
+        isFork
+        languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
+          edges { size node { name } }
+        }
+        defaultBranchRef {
+          target {
+            ... on Commit {
+              history(first: 100) {
+                nodes { committedDate }
+              }
+            }
+          }
+        }
+      }
+    }
+    contributionsCollection {
+      contributionCalendar {
+        totalContributions
+        weeks {
+          contributionDays {
+            date
+            contributionCount
+            contributionLevel
+            weekday
+          }
+        }
+      }
+    }
+  }
+}`;
 
-// 汇总各仓库 commit 日期（完全匿名化，不落盘任何私有仓库名或提交信息）
-const dateCounts = new Map<string, number>();
-for (const repo of viewer.repositories.nodes) {
+let account: any;
+try {
+  const raw = JSON.parse(execFileSync("gh", ["api", "graphql", "-f", `query=${viewerQuery}`], { encoding: "utf8" }));
+  account = raw.data.viewer;
+} catch {
+  const raw = JSON.parse(
+    execFileSync("gh", ["api", "graphql", "-f", `query=${publicUserQuery}`, "-f", `login=${LOGIN}`], { encoding: "utf8" }),
+  );
+  account = raw.data.user;
+}
+
+const dateCounts = new Map<string, number>(prevDayCounts);
+const repoDayAcc = new Map<string, number>();
+for (const repo of account.repositories.nodes ?? []) {
   const hist = repo.defaultBranchRef?.target?.history?.nodes ?? [];
   for (const c of hist) {
     const d = c.committedDate.slice(0, 10);
-    dateCounts.set(d, (dateCounts.get(d) ?? 0) + 1);
+    repoDayAcc.set(d, (repoDayAcc.get(d) ?? 0) + 1);
   }
 }
+for (const [d, cnt] of repoDayAcc) {
+  dateCounts.set(d, Math.max(dateCounts.get(d) ?? 0, cnt));
+}
 
-// 聚合语言字节数（仅保留语言名称与总大小，不保留具体仓库列表）
 const langTotals = new Map<string, number>();
-for (const repo of viewer.repositories.nodes) {
+for (const repo of account.repositories.nodes ?? []) {
   if (repo.isFork) continue;
   for (const e of repo.languages?.edges ?? []) {
     langTotals.set(e.node.name, (langTotals.get(e.node.name) ?? 0) + e.size);
   }
 }
+for (const [name, size] of prevLangTotals) {
+  langTotals.set(name, Math.max(langTotals.get(name) ?? 0, size));
+}
 
-const weeks = viewer.contributionsCollection.contributionCalendar.weeks;
+const weeks = account.contributionsCollection.contributionCalendar.weeks;
 let total = 0;
 for (const w of weeks) {
   for (const day of w.contributionDays) {
@@ -107,5 +177,5 @@ const sanitized = {
   },
 };
 
-writeFileSync(join(DATA, "stats.json"), JSON.stringify(sanitized, null, 2) + "\n");
-console.log(`stats.json 已生成（脱敏聚合完成，近一年总计 ${total} 次提交）`);
+writeFileSync(STATS_PATH, JSON.stringify(sanitized, null, 2) + "\n");
+console.log(`stats.json 已更新（近一年总计 ${total} 次耕耘记录）`);
